@@ -61,7 +61,7 @@ const TTS = async (data) => {
         await fs.writeFile(filePath, response.data);
 
         console.log("MP3 파일이 저장되었습니다:", filePath);
-        return filePath;
+        return fileName;
     } catch (error) {
         console.error("Error making request:", error);
         throw error;
