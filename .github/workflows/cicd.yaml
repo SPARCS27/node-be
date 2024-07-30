@@ -1,0 +1,51 @@
+name: Node CI CD
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: git code checkout
+              uses: actions/checkout@v3
+
+            - name: docker setup
+              uses: docker/setup-buildx-action@v3
+
+            - name: docker login
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build and push
+              uses: docker/build-push-action@v3
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: true
+                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:latest
+                  cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:cache
+                  cache-to: type=inline
+
+    deploy:
+        needs: build
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Deploy
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.SERVER_HOST }}
+                  username: ${{ secrets.SERVER_USER }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  debug: true
+                  script: |
+                      docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:latest
+                      docker stop sparks27-be || true
+                      docker rm sparks27-be || true
+                      docker run -d --name sparks27-be -p 8080:4000 \
+                        ${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:latest
