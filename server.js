@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(voiceRouter);
 app.use(fileRouter);
 app.use(chatbotRouter);
+app.use(infoRouter);
 
 const PORT = 4000;
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
