@@ -1,6 +1,9 @@
 import express from "express";
-
 import axios from "axios";
+import { fileURLToPath } from "url";
+
+import fs from "fs";
+import path from "path";
 
 const router = express.Router();
 
@@ -19,13 +22,15 @@ const headers = {
     Accept: "text/event-stream",
 };
 
-const systemPrompt = {
-    role: "system",
-    content:
-        '당신은 종업원입니다.\n고객에게 주문을 받아 올바르게 응접합니다.\n\n주문은 다음 과정으로 이루어집니다.\n1. 주문 받기\n2. 추가 사항 질문하기.\n3. 결제 안내하기\n\n1과 2는 N번 이상 반복될 수 있습니다.\n사용자는 "베이컨토마토디럭스"를 "베토디", "상하이맥스파이시치킨버거"를 "상하이" 등과 같이 줄여서 부를 수 있습니다.\n\n이때는 "${원래 메뉴 명칭} 주문하신거 맞으세요?" 라는 말로 확인을 받는다.\n\n메뉴 목록은 다음과 같습니다.\n```json\n{\nmenuList: [\n{\nname: "베이컨토마토디럭스버거",\nupgradeable: true,\nprice: "7000krw",\nupgradePrice: "2000krw"\n},\n{\r\nname: "상하이맥스파이시치킨버거",\r\nupgradeable: true,\r\nprice: "6000krw",\r\nupgradePrice: "2000krw"\r\n}\n]\n}\n```\n# 금액 계산\nupgradeable이 true인 항목은 세트로 업그레이드 할 수 있다.\n세트로 없그레이드하면 upgradePrice가 price에 추가된다.\n\n## 금액 계산 예시\n"베이컨토마토디럭스버거"는 7000원이다.\nupgradeable은 true이다.\nupgradePrice는 2000원이다.\n따라서 "베이컨토마토디럭스버거 세트"가격은 9000원이다.\n\n\n사용자가 현금을 요청하는 경우가 아니라면 "카드 앞쪽에 넣어주세요" 라는 말과 함께 카드 결제를 요청한다.\n\n\n## 결제 가격 요청 멘트\n`전체 다 해서 ${totlaPrice}원 입니다.`\n\n',
+const readPrompt = () => {
+    const filePath = path.join(process.cwd(), "guide", "v1.md");
+    return fs.readFileSync(filePath, "utf8");
 };
 
-const messages = [systemPrompt];
+const systemPrompt = {
+    role: "system",
+    content: readPrompt(),
+};
 
 const clovaOption = {
     topP: 0.5,
@@ -38,31 +43,51 @@ const clovaOption = {
     seed: 0,
 };
 
-const data = {
-    messages: messages,
-    ...clovaOption,
-};
-
-// console.log(headers);
-// console.log(JSON.stringify(messages));
-// console.log(JSON.stringify(data));
-
 router.post("/chat", async (req, res) => {
-    const { turn } = req.body;
+    const { turn, history } = req.body;
 
-    messages.push(turn);
+    if (history.length === 0) {
+        history.push(systemPrompt);
+    }
+    history.push(turn);
 
-    const response = await getClovaMessage(data);
-    console.log(JSON.stringify(response));
-
-    res.status(200).json({ result: true });
+    try {
+        const response = await getClovaMessage({
+            messages: history,
+            ...clovaOption,
+        });
+        console.log(response);
+        history.push(response);
+        res.status(200).json({
+            result: true,
+            message: response,
+            history: history,
+        });
+    } catch (error) {
+        res.status(500).json({ result: false, error: error.message });
+    }
 });
 
 const getClovaMessage = async (data) => {
-    const response = await axios.post(CLOVA_STUDIO_URL, data, {
-        headers: headers,
-    });
-    return response.data;
+    const response = await axios
+        .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
+            headers: headers,
+        })
+        .then((res) => res.data);
+    const chunks = response.split("\n\n");
+    for (const chunk of chunks) {
+        if (chunk.includes("event:token")) {
+            continue;
+        }
+        const regex = /data:({\s*".*})/;
+        const match = chunk.match(regex);
+
+        if (!match) {
+            continue;
+        }
+        return JSON.parse(match[1]).message;
+    }
+    return "";
 };
 
 export default router;

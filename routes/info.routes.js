@@ -29,4 +29,25 @@ router.get("/info/:code", async (req, res) => {
     }
 });
 
+const orderDB = {};
+
+const menu = {
+    name: "name",
+    isSet: true,
+    price: 1000,
+};
+
+router.post("/cart/:uid", async (req, res) => {
+    const uid = req.params.uid;
+    const { menus } = req.body;
+    console.log(uid);
+
+    try {
+        orderDB[uid] = menus;
+        res.status(200).json({ result: true, order: orderDB[uid] });
+    } catch {
+        res.status(400).json({ result: false });
+    }
+});
+
 export default router;
