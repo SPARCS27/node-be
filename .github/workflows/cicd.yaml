@@ -28,8 +28,8 @@ jobs:
                   context: .
                   file: ./Dockerfile
                   push: true
-                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:latest
-                  cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:cache
+                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/sparcs-be:latest
+                  cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/sparcs-be:cache
                   cache-to: type=inline
 
     deploy:
@@ -44,8 +44,8 @@ jobs:
                   key: ${{ secrets.SERVER_SSH_KEY }}
                   debug: true
                   script: |
-                      docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:latest
-                      docker stop sparks27-be || true
-                      docker rm sparks27-be || true
-                      docker run -d --name sparks27-be -p 8080:4000 \
-                        ${{ secrets.DOCKERHUB_USERNAME }}/sparks27-be:latest
+                      docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sparcs-be:latest
+                      docker stop sparcs-be || true
+                      docker rm sparcs-be || true
+                      docker run -d --name sparcs-be -p 8080:4000 \
+                        ${{ secrets.DOCKERHUB_USERNAME }}/sparcs-be:latest
