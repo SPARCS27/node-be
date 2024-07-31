@@ -28,7 +28,7 @@ const clovaOption = {
     temperature: 0.1,
     repeatPenalty: 1.0,
     stopBefore: [],
-    includeAiFilters: true,
+    includeAiFilters: false,
     seed: 0,
 };
 

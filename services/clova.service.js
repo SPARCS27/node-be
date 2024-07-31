@@ -14,7 +14,7 @@ const headers = {
     Accept: "text/event-stream",
 };
 
-const conversationGuide = prompt("conversation", "v2");
+const conversationGuide = prompt("conversation", "v3").replace(/\r\n/g, " ");
 const orderGuide = prompt("order", "v2");
 
 export const fetchOrderConversation = async (data) => {
@@ -23,7 +23,7 @@ export const fetchOrderConversation = async (data) => {
         ...data.messages,
     ];
 
-    console.log(JSON.stringify(data, null, 2));
+    // console.log(JSON.stringify(data, null, 2));
 
     const response = await axios
         .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
