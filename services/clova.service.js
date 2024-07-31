@@ -107,17 +107,25 @@ export const extractOrderTask = async (data) => {
 export const fetchETC = async (data) => {
     data.messages = [{ role: "system", content: etcGuide }, ...data.messages];
 
+    // console.log(data);
     const response = await axios
-        .post("CLOVA_STUDIO_URL", JSON.stringify(data), {
-            headers: {
-                ...headers,
-                CLOVASTUDIO_REQUEST_ID: "f1b5e7f7-a793-4f1a-9ae6-94219cf9a146",
-            },
-        })
+        .post(
+            "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-DASH-001",
+            JSON.stringify(data),
+            {
+                headers: {
+                    ...headers,
+                    CLOVASTUDIO_REQUEST_ID:
+                        "f1b5e7f7-a793-4f1a-9ae6-94219cf9a146",
+                },
+            }
+        )
         .then((res) => res.data);
     const chunks = response.split("\n\n");
 
-    return extractEventResult(chunks);
+    const result = extractEventResult(chunks);
+    // console.log(result);
+    return result;
 };
 
 // 이벤트 result 추출
