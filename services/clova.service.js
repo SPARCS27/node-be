@@ -89,6 +89,7 @@ const extractEventResult = (chunks) => {
             continue;
         }
 
+        console.log(match[1]);
         match[1] = removeJsonMarkers(match[1]);
         return JSON.parse(match[1]).message;
     }
@@ -96,9 +97,45 @@ const extractEventResult = (chunks) => {
     return "";
 };
 
-const removeJsonMarkers = (str) => {
-    console.log(str);
-    str = str.replace(/```json(.*?)```/g, (_, p1) => p1.replace(/"/g, '\\"'));
-    console.log(str);
-    return str;
+const removeJsonMarkers = (input) => {
+    // 입력이 문자열이 아니면 JSON으로 변환
+    const str = typeof input === "string" ? input : JSON.stringify(input);
+
+    const processString = (s) => {
+        return s.replace(/```json\n?([\s\S]*?)```/g, (_, p1) => {
+            try {
+                // JSON 파싱 시도
+                const parsed = JSON.parse(p1);
+                return JSON.stringify(parsed);
+            } catch (e) {
+                // 파싱 실패 시 원본 반환
+                console.warn("Failed to parse JSON:", p1);
+                return p1;
+            }
+        });
+    };
+
+    const processObject = (obj) => {
+        if (typeof obj === "string") {
+            return processString(obj);
+        } else if (Array.isArray(obj)) {
+            return obj.map(processObject);
+        } else if (typeof obj === "object" && obj !== null) {
+            const newObj = {};
+            for (const [key, value] of Object.entries(obj)) {
+                newObj[key] = processObject(value);
+            }
+            return newObj;
+        }
+        return obj;
+    };
+
+    try {
+        const parsed = JSON.parse(str);
+        const processed = processObject(parsed);
+        return JSON.stringify(processed);
+    } catch (e) {
+        console.warn("Failed to parse outer JSON, processing as string");
+        return processString(str);
+    }
 };

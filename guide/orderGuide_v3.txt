@@ -55,26 +55,29 @@
 </응답 스키마>
 
 <응답 형식>
-응답은 반드시 JSON 형식으로 한다.
+<예시1>
+응답은 반드시 올바른 JSON 형식으로 한다.
+응답시에 "```json"과 같은 json 마커 없이 '{}' 중괄호 부터 반환해야한다.
 
-    <예시>
-        {
-            "task": {
-                "menus": [
-                    {
-                        "name" : "BTD",
-                        "isCombo" : true,
-                        "size": "M",
-                        "drink": "CC",
-                        "purchase": 1
-                    }
-                ],
-                "pickupStrategy": "TAKEOUT",
-                "totalPrice": 7500,
-                "step": "ORDER"
+형식 예시
+```json
+{
+    "task": {
+        "menus": [
+            {
+                "name" : "BTD",
+                "isCombo" : true,
+                "size": "M",
+                "drink": "CC",
+                "purchase": 1
             }
-        }
-    </예시>
+        ],
+        "pickupStrategy": "TAKEOUT",
+        "totalPrice": 7500,
+        "step": "ORDER"
+    }
+}
+```
     <예제 설명>
         task: 전체 주문 정보를 담고 있는 최상위 객체입니다.
         menus: 주문한 메뉴 목록을 배열 형태로 포함하고 있습니다.
@@ -87,6 +90,37 @@
         totalPrice: 7500은 총 가격을 의미합니다.
         step: 현재 대화 단계가 "주문" 단계라는 것을 의미합니다.
     </예제 설명>
+</예시1>
+<예시2>
+응답은 반드시 JSON 형식으로 한다.
+```json
+{
+    "task": {
+        "menus": [
+            {
+                "name" : "MSC",
+                "isCombo" : false,
+                "purchase": 2
+            }
+        ],
+        "pickupStrategy": "DINE_IN",
+        "totalPrice": 12000,
+        "step": "ORDER"
+    }
+}
+```
+    <예제 설명>
+        task: 전체 주문 정보를 담고 있는 최상위 객체입니다.
+        menus: 주문한 메뉴 목록을 배열 형태로 포함하고 있습니다.
+        name: "BTD"는 베이컨 토마토 디럭스 버거를 의미합니다.
+        isCombo: false는 해당 메뉴가 단품으로 주문되었음을 의미합니다.
+        > isCombo가 false, 즉 단품이므로 drink와 size는 없습니다.
+        purchase: 2은 주문한 수량을 의미합니다.
+        pickupStrategy: "DINE_IN"은 먹고가기 방식을 의미합니다.
+        totalPrice: 12000은 총 가격을 의미합니다.
+        step: 현재 대화 단계가 "주문" 단계라는 것을 의미합니다.
+    </예제 설명>
+</예시2>
 </응답 형식>
 
 <대응 방법>
@@ -97,3 +131,5 @@
 <추천 예외 처리>
 고객과 점원이 추천에 대한 이야기를 하는 경우, 점원이 추천한 상품은 따로 task에 담지 않도록한다.
 </추천 예외 처리>
+
+위의 규칙을 어기거나, JSON 형식이 올바르지 않은 경우, 금액 계산이 틀릴경우, 상당한 패널티가 당신에게 부여되니 신중하게 응답하라.
