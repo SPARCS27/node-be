@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>대화형 콘솔</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            #cart-container {
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 20px;
+                background-color: #f9f9f9;
+            }
+            #chat-container {
+                border: 1px solid #ccc;
+                padding: 10px;
+                height: 300px;
+                overflow-y: auto;
+                margin-bottom: 10px;
+            }
+            #user-input {
+                width: 100%;
+                padding: 5px;
+                margin-bottom: 10px;
+            }
+            #send-button {
+                width: 100%;
+                padding: 5px;
+            }
+            pre {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            .loading {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-left: 10px;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <h1>대화형 콘솔</h1>
+        <div id="cart-container">
+            <h2>TASK 현황</h2>
+            <pre id="cart-content"></pre>
+        </div>
+        <div id="chat-container"></div>
+        <input
+            type="text"
+            id="user-input"
+            placeholder="메시지를 입력하세요..."
+        />
+        <button id="send-button">전송</button>
+
+        <script>
+            const chatContainer = document.getElementById("chat-container");
+            const userInput = document.getElementById("user-input");
+            const sendButton = document.getElementById("send-button");
+            const cartContent = document.getElementById("cart-content");
+
+            let history = [];
+            let isLoading = false;
+
+            // 초기 장바구니 데이터 렌더링
+            const initialCart = {
+                cart: {
+                    task: {
+                        menus: [
+                            {
+                                name: "default",
+                                isCombo: false,
+                                size: "M",
+                                drink: "CC",
+                                purchase: 1,
+                            },
+                        ],
+                        pickupStrategy: "DINE_IN",
+                        totalPrice: 0,
+                    },
+                },
+            };
+            updateCartDisplay(initialCart.cart);
+
+            async function sendMessage() {
+                const userMessage = userInput.value.trim();
+                if (userMessage === "" || isLoading) return;
+
+                isLoading = true;
+                sendButton.disabled = true;
+                userInput.disabled = true;
+
+                // 사용자 메시지 표시
+                appendMessage("사용자", userMessage);
+
+                // 로딩 메시지 표시
+                const loadingMessage = appendMessage(
+                    "시스템",
+                    "응답 대기 중..."
+                );
+
+                const requestBody = {
+                    turn: {
+                        role: "user",
+                        content: userMessage,
+                    },
+                    history: history,
+                };
+
+                try {
+                    const response = await fetch("/chat", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(requestBody),
+                    });
+
+                    const data = await response.json();
+
+                    // 로딩 메시지 제거
+                    loadingMessage.remove();
+
+                    // 응답 메시지 표시
+                    appendMessage("어시스턴트", data.message.content);
+
+                    // history 업데이트
+                    history = data.history;
+
+                    // cart 객체 업데이트 및 표시
+                    updateCartDisplay(data.cart);
+
+                    // cart 객체 콘솔에 출력
+                    console.log("Cart:", data.cart);
+                } catch (error) {
+                    console.error("Error:", error);
+                    loadingMessage.remove();
+                    appendMessage(
+                        "시스템",
+                        "오류가 발생했습니다. 다시 시도해주세요."
+                    );
+                } finally {
+                    isLoading = false;
+                    sendButton.disabled = false;
+                    userInput.disabled = false;
+                }
+
+                userInput.value = "";
+            }
+
+            function appendMessage(sender, message) {
+                const messageElement = document.createElement("p");
+                messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+                if (sender === "시스템" && message === "응답 대기 중...") {
+                    const loadingSpinner = document.createElement("span");
+                    loadingSpinner.className = "loading";
+                    messageElement.appendChild(loadingSpinner);
+                }
+                chatContainer.appendChild(messageElement);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return messageElement;
+            }
+
+            function updateCartDisplay(cart) {
+                if (cart && cart.task) {
+                    cartContent.textContent = JSON.stringify(
+                        cart.task,
+                        null,
+                        2
+                    );
+                } else {
+                    cartContent.textContent = "장바구니가 비어있습니다.";
+                }
+            }
+
+            sendButton.addEventListener("click", sendMessage);
+            userInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    sendMessage();
+                }
+            });
+        </script>
+    </body>
+</html>
