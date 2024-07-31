@@ -1,9 +1,10 @@
 import express from "express";
 import axios from "axios";
-import { fileURLToPath } from "url";
-
-import fs from "fs";
-import path from "path";
+import { prompt } from "../prompt.config.js";
+import {
+    extractOrderTask,
+    fetchOrderConversation,
+} from "../services/clova.service.js";
 
 const router = express.Router();
 
@@ -22,16 +23,6 @@ const headers = {
     Accept: "text/event-stream",
 };
 
-const readPrompt = () => {
-    const filePath = path.join(process.cwd(), "guide", "v1.md");
-    return fs.readFileSync(filePath, "utf8");
-};
-
-const systemPrompt = {
-    role: "system",
-    content: readPrompt(),
-};
-
 const clovaOption = {
     topP: 0.5,
     topK: 10,
@@ -46,48 +37,30 @@ const clovaOption = {
 router.post("/chat", async (req, res) => {
     const { turn, history } = req.body;
 
-    if (history.length === 0) {
-        history.push(systemPrompt);
-    }
     history.push(turn);
 
     try {
-        const response = await getClovaMessage({
+        const clovaConversation = await fetchOrderConversation({
             messages: history,
             ...clovaOption,
         });
-        console.log(response);
-        history.push(response);
+        history.push(clovaConversation);
+
+        const cart = await extractOrderTask({
+            messages: history,
+            ...clovaOption,
+        });
+
         res.status(200).json({
             result: true,
-            message: response,
+            message: clovaConversation,
             history: history,
+            cart: cart,
         });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ result: false, error: error.message });
     }
 });
-
-const getClovaMessage = async (data) => {
-    const response = await axios
-        .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
-            headers: headers,
-        })
-        .then((res) => res.data);
-    const chunks = response.split("\n\n");
-    for (const chunk of chunks) {
-        if (chunk.includes("event:token")) {
-            continue;
-        }
-        const regex = /data:({\s*".*})/;
-        const match = chunk.match(regex);
-
-        if (!match) {
-            continue;
-        }
-        return JSON.parse(match[1]).message;
-    }
-    return "";
-};
 
 export default router;
