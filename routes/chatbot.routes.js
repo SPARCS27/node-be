@@ -59,7 +59,7 @@ router.post("/chat", async (req, res) => {
         messages: history,
         ...clovaOption,
     });
-    console.log(classfy);
+    console.log(classfy.class);
 
     if (classfy.class === "REC") {
         try {
@@ -88,9 +88,7 @@ router.post("/chat", async (req, res) => {
                 .status(500)
                 .json({ result: false, error: error.message });
         }
-    }
-
-    if (classfy.class === "OTH") {
+    } else if (classfy.class === "OTH") {
         try {
             const etcConversation = await fetchETC({
                 messages: history,
@@ -112,9 +110,7 @@ router.post("/chat", async (req, res) => {
                 .status(500)
                 .json({ result: false, error: error.message });
         }
-    }
-
-    if (classfy.class === "ORD") {
+    } else if (classfy.class === "ORD") {
         try {
             const clovaConversation = await fetchOrderConversation({
                 messages: history,
@@ -163,8 +159,9 @@ router.post("/chat", async (req, res) => {
                 .status(500)
                 .json({ result: false, error: error.message });
         }
+    } else {
+        res.status(200).json({ result: false });
     }
-    res.status(200).json({ result: false });
     return;
 });
 
