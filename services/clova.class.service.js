@@ -32,6 +32,7 @@ export const getClassfy = async (data) => {
         .then((res) => res.data);
     const chunks = response.split("\n\n");
 
+    console.log(extractEventResult(chunks).content);
     const classfy = JSON.parse(extractEventResult(chunks).content);
     return classfy;
 };

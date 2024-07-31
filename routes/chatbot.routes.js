@@ -94,7 +94,7 @@ router.post("/chat", async (req, res) => {
                 messages: history,
                 ...clovaOption,
             });
-            history.push(etcConversation);
+            // history.push(etcConversation);
 
             history.forEach((message) => {
                 message.content = replaceLF(message.content);
