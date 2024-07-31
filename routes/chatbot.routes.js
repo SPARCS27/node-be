@@ -141,7 +141,7 @@ router.post("/chat", async (req, res) => {
                 }
             });
 
-            if (clovaConversation.content.includes("결제 도와드리겠습니다")) {
+            if (isPayStep(clovaConversation.content)) {
                 cart.task.step = "PAY";
                 const price = cart.task.totalPrice;
                 // console.log(price);
@@ -171,6 +171,19 @@ router.post("/chat", async (req, res) => {
     }
     return;
 });
+
+const isPayStep = (text) => {
+    if (text.includes("결제 도와드리겠습니다")) {
+        return true;
+    }
+    if (text.includes("총") && text.includes("결제")) {
+        return true;
+    }
+    if (text.includes("결제") && text.includes("금액")) {
+        return true;
+    }
+    return false;
+};
 
 const replaceLF = (content) => {
     return content.replace(/\r\n\r\n/g, " ");
