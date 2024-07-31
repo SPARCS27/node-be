@@ -14,7 +14,7 @@ const headers = {
     Accept: "text/event-stream",
 };
 
-const conversationGuide = prompt("conversation", "");
+const conversationGuide = prompt("conversation", "v2");
 const orderGuide = prompt("order", "v2");
 
 export const fetchOrderConversation = async (data) => {
