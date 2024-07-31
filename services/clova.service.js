@@ -88,6 +88,7 @@ const extractEventResult = (chunks) => {
         if (!match) {
             continue;
         }
+        console.log(match[1]);
         return JSON.parse(match[1]).message;
     }
 
