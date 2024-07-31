@@ -77,19 +77,6 @@ export const extractOrderTask = async (data) => {
     }
 };
 
-const smaple = {
-    message: {
-        role: "assistant",
-        content:
-            '```json\n{\n    "task": {\n        "menus": [\n            {\n                "name" : "BGG",\n                "isCombo" : false,\n                "size": " ",\n                "drink": " ",\n                "purchase": 1\n            }\n        ],\n        "pickupStrategy": "TAKEOUT",\n        "totalPrice": 3500,\n        "step": "ORDER"\n    }\n}\n```',
-    },
-    inputLength: 1480,
-    outputLength: 104,
-    stopReason: "stop_before",
-    seed: 2277916942,
-};
-console.log(smaple);
-
 const extractEventResult = (chunks) => {
     for (const chunk of chunks) {
         if (chunk.includes("event:token")) {
