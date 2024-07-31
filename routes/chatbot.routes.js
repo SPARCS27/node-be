@@ -55,11 +55,16 @@ router.post("/chat", async (req, res) => {
 
     history.push(turn);
 
-    const classfy = await getClassfy({
-        messages: history,
-        ...clovaOption,
-    });
-    console.log(classfy.class);
+    try {
+        const classfy = await getClassfy({
+            messages: history,
+            ...clovaOption,
+        });
+        console.log(classfy.class);
+
+    } catch(error) {
+        
+    }
 
     if (classfy.class === "REC") {
         try {
