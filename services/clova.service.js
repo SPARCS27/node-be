@@ -16,6 +16,7 @@ const headers = {
 
 const conversationGuide = prompt("conversation", "v5");
 const orderGuide = prompt("order", "v3");
+const recommendGuide = prompt("recommend", "v1");
 
 console.log("#####PROMPT#####");
 console.log(conversationGuide);
@@ -36,6 +37,27 @@ export const fetchOrderConversation = async (data) => {
     const chunks = response.split("\n\n");
 
     return extractEventResult(chunks);
+};
+
+export const recommendMenu = async (data) => {
+    data.messages = [
+        { role: "system", content: recommendGuide },
+        ...data.messages,
+    ];
+
+    const response = await axios
+        .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
+            headers: {
+                ...headers,
+                CLOVASTUDIO_REQUEST_ID: "b12ebb27-7e5a-4c2e-b633-a4c4ad615b49",
+            },
+        })
+        .then((res) => res.data);
+    const chunks = response.split("\n\n");
+
+    const recommendation = JSON.parse(extractEventResult(chunks).content);
+    console.log(recommendMenu);
+    return recommendation;
 };
 
 export const extractOrderTask = async (data) => {

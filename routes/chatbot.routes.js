@@ -2,6 +2,7 @@ import express from "express";
 import {
     extractOrderTask,
     fetchOrderConversation,
+    recommendMenu,
 } from "../services/clova.service.js";
 
 const router = express.Router();
@@ -32,10 +33,47 @@ const clovaOption = {
     seed: 0,
 };
 
+const isRecommendRes = (turn) => {
+    if (turn.content.includes("추천")) {
+        if (
+            turn.content.includes("메뉴") ||
+            turn.content.includes("버거") ||
+            turn.content.includes("음식") ||
+            turn.content.includes("것") ||
+            turn.content.includes("거")
+        ) {
+            return true;
+        }
+    }
+    return false;
+};
+
 router.post("/chat", async (req, res) => {
     const { turn, history } = req.body;
 
     history.push(turn);
+
+    if (isRecommendRes(turn)) {
+        const response = await recommendMenu({
+            messages: history,
+            ...clovaOption,
+        });
+
+        const assistantMessage = {
+            role: "assistant",
+            content: response.comment,
+        };
+        history.push(assistantMessage);
+
+        response.menu.link = `https://api.sparcs27.jeongrae.me/file/download/${response.menu.code}.png`;
+
+        return res.status(200).json({
+            result: true,
+            message: assistantMessage,
+            history: history,
+            recommend: response,
+        });
+    }
 
     try {
         const clovaConversation = await fetchOrderConversation({
