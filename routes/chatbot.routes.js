@@ -62,6 +62,15 @@ router.post("/chat", async (req, res) => {
 
         if (clovaConversation.content.includes("결제 도와드리겠습니다")) {
             cart.task.step = "PAY";
+            const price = cart.task.totalPrice;
+            // console.log(price);
+            const insertedPriceText = insertPrice(
+                clovaConversation.content,
+                price
+            );
+            // console.log(insertedPriceText);
+            clovaConversation.content = insertedPriceText;
+            history.at(-1).content = insertedPriceText;
         }
 
         res.status(200).json({
@@ -78,6 +87,10 @@ router.post("/chat", async (req, res) => {
 
 const replaceLF = (content) => {
     return content.replace(/\r\n\r\n/g, " ");
+};
+
+const insertPrice = (text, price) => {
+    return text.replace(/(결제 도와드리겠습니다)/, `${price}원 $1`);
 };
 
 export default router;
