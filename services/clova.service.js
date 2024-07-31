@@ -88,9 +88,20 @@ const extractEventResult = (chunks) => {
         if (!match) {
             continue;
         }
-        console.log(match[1]);
+        match[1] = removeJsonMarkers(match[1]);
         return JSON.parse(match[1]).message;
     }
 
     return "";
+};
+
+const removeJsonMarkers = (text) => {
+    const pattern = /^\s*```json\s*([\s\S]*?)\s*```\s*$/m;
+    const match = text.match(pattern);
+
+    if (match) {
+        return match[1].trim();
+    } else {
+        return text;
+    }
 };
