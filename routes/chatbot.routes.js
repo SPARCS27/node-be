@@ -4,6 +4,7 @@ import {
     fetchOrderConversation,
     recommendMenu,
 } from "../services/clova.service.js";
+import { getClassfy } from "../services/clova.class.service.js";
 
 const router = express.Router();
 
@@ -33,27 +34,33 @@ const clovaOption = {
     seed: 0,
 };
 
-const isRecommendRes = (turn) => {
-    if (turn.content.includes("추천")) {
-        if (
-            turn.content.includes("메뉴") ||
-            turn.content.includes("버거") ||
-            turn.content.includes("음식") ||
-            turn.content.includes("것") ||
-            turn.content.includes("거")
-        ) {
-            return true;
-        }
-    }
-    return false;
-};
+// const isRecommendRes = (turn) => {
+//     if (turn.content.includes("추천")) {
+//         if (
+//             turn.content.includes("메뉴") ||
+//             turn.content.includes("버거") ||
+//             turn.content.includes("음식") ||
+//             turn.content.includes("것") ||
+//             turn.content.includes("거")
+//         ) {
+//             return true;
+//         }
+//     }
+//     return false;
+// };
 
 router.post("/chat", async (req, res) => {
     const { turn, history } = req.body;
 
     history.push(turn);
 
-    if (isRecommendRes(turn)) {
+    const classfy = await getClassfy({
+        messages: history,
+        ...clovaOption,
+    });
+    console.log(classfy);
+
+    if (classfy.class === "REC") {
         const response = await recommendMenu({
             messages: history,
             ...clovaOption,
@@ -75,52 +82,56 @@ router.post("/chat", async (req, res) => {
         });
     }
 
-    try {
-        const clovaConversation = await fetchOrderConversation({
-            messages: history,
-            ...clovaOption,
-        });
-        history.push(clovaConversation);
+    if (classfy.class === "ORD") {
+        try {
+            const clovaConversation = await fetchOrderConversation({
+                messages: history,
+                ...clovaOption,
+            });
+            history.push(clovaConversation);
 
-        history.forEach((message) => {
-            message.content = replaceLF(message.content);
-        });
+            history.forEach((message) => {
+                message.content = replaceLF(message.content);
+            });
 
-        const cart = await extractOrderTask({
-            messages: history,
-            ...clovaOption,
-        });
+            const cart = await extractOrderTask({
+                messages: history,
+                ...clovaOption,
+            });
 
-        cart.task.menus.forEach((menu) => {
-            if (!menu.isCombo) {
-                delete menu.drink;
-                delete menu.size;
+            cart.task.menus.forEach((menu) => {
+                if (!menu.isCombo) {
+                    delete menu.drink;
+                    delete menu.size;
+                }
+            });
+
+            if (clovaConversation.content.includes("결제 도와드리겠습니다")) {
+                cart.task.step = "PAY";
+                const price = cart.task.totalPrice;
+                // console.log(price);
+                const insertedPriceText = insertPrice(
+                    clovaConversation.content,
+                    price
+                );
+                // console.log(insertedPriceText);
+                clovaConversation.content = insertedPriceText;
+                history.at(-1).content = insertedPriceText;
             }
-        });
 
-        if (clovaConversation.content.includes("결제 도와드리겠습니다")) {
-            cart.task.step = "PAY";
-            const price = cart.task.totalPrice;
-            // console.log(price);
-            const insertedPriceText = insertPrice(
-                clovaConversation.content,
-                price
-            );
-            // console.log(insertedPriceText);
-            clovaConversation.content = insertedPriceText;
-            history.at(-1).content = insertedPriceText;
+            res.status(200).json({
+                result: true,
+                message: clovaConversation,
+                history: history,
+                cart: cart,
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ result: false, error: error.message });
         }
-
-        res.status(200).json({
-            result: true,
-            message: clovaConversation,
-            history: history,
-            cart: cart,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ result: false, error: error.message });
     }
+    res.status(200).json({ result: false });
+    return;
 });
 
 const replaceLF = (content) => {
