@@ -72,8 +72,8 @@ export const extractOrderTask = async (data) => {
     try {
         return JSON.parse(extractEventResult(chunks).content);
     } catch (error) {
-        console.log(error);
-        console.log(chunks);
+        console.error(error);
+        return {};
     }
 };
 
@@ -88,6 +88,7 @@ const extractEventResult = (chunks) => {
         if (!match) {
             continue;
         }
+        console.log(match[1]);
         match[1] = removeJsonMarkers(match[1]);
         return JSON.parse(match[1]).message;
     }
