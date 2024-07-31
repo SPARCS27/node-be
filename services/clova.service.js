@@ -14,8 +14,8 @@ const headers = {
     Accept: "text/event-stream",
 };
 
-const conversationGuide = prompt("conversation");
-const orderGuide = prompt("order");
+const conversationGuide = prompt("conversation", "");
+const orderGuide = prompt("order", "v2");
 
 export const fetchOrderConversation = async (data) => {
     data.messages = [
@@ -34,7 +34,18 @@ export const fetchOrderConversation = async (data) => {
 };
 
 export const extractOrderTask = async (data) => {
-    const messages = data.messages;
+    const messages = structuredClone(data.messages);
+    messages.forEach((message) => {
+        if (message.role === "user") {
+            message.role = "주문고객";
+            return;
+        }
+        if (message.role === "assistant") {
+            message.role = "점원";
+            return;
+        }
+    });
+
     data.messages = [
         { role: "system", content: orderGuide },
         { role: "user", content: JSON.stringify(messages) },
@@ -50,20 +61,8 @@ export const extractOrderTask = async (data) => {
         .then((res) => res.data);
 
     const chunks = response.split("\n\n");
-    for (const chunk of chunks) {
-        if (chunk.includes("event:token")) {
-            continue;
-        }
-        const regex = /data:({\s*".*})/;
-        const match = chunk.match(regex);
 
-        if (!match) {
-            continue;
-        }
-        return JSON.parse(extractEventResult(chunks).content);
-    }
-
-    return "";
+    return JSON.parse(extractEventResult(chunks).content);
 };
 
 const extractEventResult = (chunks) => {

@@ -1,6 +1,4 @@
 import express from "express";
-import axios from "axios";
-import { prompt } from "../prompt.config.js";
 import {
     extractOrderTask,
     fetchOrderConversation,
@@ -46,6 +44,10 @@ router.post("/chat", async (req, res) => {
         });
         history.push(clovaConversation);
 
+        history.forEach((message) => {
+            message.content = replaceLF(message.content);
+        });
+
         const cart = await extractOrderTask({
             messages: history,
             ...clovaOption,
@@ -62,5 +64,9 @@ router.post("/chat", async (req, res) => {
         res.status(500).json({ result: false, error: error.message });
     }
 });
+
+const replaceLF = (content) => {
+    return content.replace(/\r\n\r\n/g, " ");
+};
 
 export default router;
