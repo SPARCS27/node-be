@@ -23,6 +23,8 @@ export const fetchOrderConversation = async (data) => {
         ...data.messages,
     ];
 
+    console.log(JSON.stringify(data, null, 2));
+
     const response = await axios
         .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
             headers: headers,
