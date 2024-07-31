@@ -61,25 +61,30 @@ router.post("/chat", async (req, res) => {
     console.log(classfy);
 
     if (classfy.class === "REC") {
-        const response = await recommendMenu({
-            messages: history,
-            ...clovaOption,
-        });
+        try {
+            const response = await recommendMenu({
+                messages: history,
+                ...clovaOption,
+            });
 
-        const assistantMessage = {
-            role: "assistant",
-            content: response.comment,
-        };
-        history.push(assistantMessage);
+            const assistantMessage = {
+                role: "assistant",
+                content: response.comment,
+            };
+            history.push(assistantMessage);
 
-        response.menu.link = `https://api.sparcs27.jeongrae.me/file/download/${response.menu.code}.png`;
+            response.menu.link = `https://api.sparcs27.jeongrae.me/file/download/${response.menu.code}.png`;
 
-        return res.status(200).json({
-            result: true,
-            message: assistantMessage,
-            history: history,
-            recommend: response,
-        });
+            return res.status(200).json({
+                result: true,
+                message: assistantMessage,
+                history: history,
+                recommend: response,
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ result: false, error: error.message });
+        }
     }
 
     if (classfy.class === "ORD") {

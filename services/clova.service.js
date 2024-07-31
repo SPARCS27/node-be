@@ -23,6 +23,7 @@ console.log(conversationGuide);
 console.log(orderGuide);
 console.log("#####PROMPT#####");
 
+// 주문
 export const fetchOrderConversation = async (data) => {
     data.messages = [
         { role: "system", content: conversationGuide },
@@ -39,6 +40,7 @@ export const fetchOrderConversation = async (data) => {
     return extractEventResult(chunks);
 };
 
+// 추천
 export const recommendMenu = async (data) => {
     data.messages = [
         { role: "system", content: recommendGuide },
@@ -55,11 +57,14 @@ export const recommendMenu = async (data) => {
         .then((res) => res.data);
     const chunks = response.split("\n\n");
 
+    // console.log(extractEventResult(chunks).content);
+
     const recommendation = JSON.parse(extractEventResult(chunks).content);
     console.log(recommendMenu);
     return recommendation;
 };
 
+// task 관리
 export const extractOrderTask = async (data) => {
     const messages = structuredClone(data.messages);
     messages.forEach((message) => {
@@ -97,6 +102,7 @@ export const extractOrderTask = async (data) => {
     }
 };
 
+// 이벤트 result 추출
 const extractEventResult = (chunks) => {
     for (const chunk of chunks) {
         if (chunk.includes("event:token")) {
@@ -117,6 +123,7 @@ const extractEventResult = (chunks) => {
     return "";
 };
 
+// JSON 리무브
 const removeJsonMarkers = (input) => {
     // 입력이 문자열이 아니면 JSON으로 변환
     const str = typeof input === "string" ? input : JSON.stringify(input);
