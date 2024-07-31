@@ -14,8 +14,13 @@ const headers = {
     Accept: "text/event-stream",
 };
 
-const conversationGuide = prompt("conversation", "v3").replace(/\r\n/g, " ");
-const orderGuide = prompt("order", "v2");
+const conversationGuide = prompt("conversation", "v4");
+const orderGuide = prompt("order", "v3");
+
+console.log("#####PROMPT#####");
+console.log(conversationGuide);
+console.log(orderGuide);
+console.log("#####PROMPT#####");
 
 export const fetchOrderConversation = async (data) => {
     data.messages = [
@@ -57,7 +62,7 @@ export const extractOrderTask = async (data) => {
         .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
             headers: {
                 ...headers,
-                CLOVASTUDIO_REQUEST_ID: "8bb04339-77dd-4ad5-87a8-5c8d13efcd49",
+                CLOVASTUDIO_REQUEST_ID: "b12ebb27-7e5a-4c2e-b633-a4c4ad615b49",
             },
         })
         .then((res) => res.data);

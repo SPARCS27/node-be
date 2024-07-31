@@ -53,6 +53,13 @@ router.post("/chat", async (req, res) => {
             ...clovaOption,
         });
 
+        cart.task.menus.forEach((menu) => {
+            if (!menu.isCombo) {
+                delete menu.drink;
+                delete menu.size;
+            }
+        });
+
         res.status(200).json({
             result: true,
             message: clovaConversation,
