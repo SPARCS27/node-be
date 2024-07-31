@@ -69,7 +69,12 @@ export const extractOrderTask = async (data) => {
 
     const chunks = response.split("\n\n");
 
-    return JSON.parse(extractEventResult(chunks).content);
+    try {
+        return JSON.parse(extractEventResult(chunks).content);
+    } catch (error) {
+        console.log(error);
+        console.log(chunks);
+    }
 };
 
 const extractEventResult = (chunks) => {
