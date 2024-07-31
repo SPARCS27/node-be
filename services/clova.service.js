@@ -17,10 +17,11 @@ const headers = {
 const conversationGuide = prompt("conversation", "v5");
 const orderGuide = prompt("order", "v3");
 const recommendGuide = prompt("recommend", "v1");
+const etcGuide = prompt("etc", "v1");
 
 console.log("#####PROMPT#####");
-console.log(conversationGuide);
-console.log(orderGuide);
+// console.log(conversationGuide);
+// console.log(orderGuide);
 console.log("#####PROMPT#####");
 
 // 주문
@@ -100,6 +101,23 @@ export const extractOrderTask = async (data) => {
         console.error(error);
         return {};
     }
+};
+
+//기타질문
+export const fetchETC = async (data) => {
+    data.messages = [{ role: "system", content: etcGuide }, ...data.messages];
+
+    const response = await axios
+        .post("CLOVA_STUDIO_URL", JSON.stringify(data), {
+            headers: {
+                ...headers,
+                CLOVASTUDIO_REQUEST_ID: "f1b5e7f7-a793-4f1a-9ae6-94219cf9a146",
+            },
+        })
+        .then((res) => res.data);
+    const chunks = response.split("\n\n");
+
+    return extractEventResult(chunks);
 };
 
 // 이벤트 result 추출

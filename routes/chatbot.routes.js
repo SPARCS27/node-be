@@ -1,6 +1,7 @@
 import express from "express";
 import {
     extractOrderTask,
+    fetchETC,
     fetchOrderConversation,
     recommendMenu,
 } from "../services/clova.service.js";
@@ -83,7 +84,33 @@ router.post("/chat", async (req, res) => {
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ result: false, error: error.message });
+            return res
+                .status(500)
+                .json({ result: false, error: error.message });
+        }
+    }
+
+    if (classfy.class === "OTH") {
+        try {
+            const etcConversation = await fetchETC({
+                messages: history,
+                ...clovaOption,
+            });
+            history.push(etcConversation);
+
+            history.forEach((message) => {
+                message.content = replaceLF(message.content);
+            });
+            res.status(200).json({
+                result: true,
+                message: etcConversation,
+                history: history,
+            });
+        } catch (error) {
+            console.error(error);
+            return res
+                .status(500)
+                .json({ result: false, error: error.message });
         }
     }
 
@@ -124,7 +151,7 @@ router.post("/chat", async (req, res) => {
                 history.at(-1).content = insertedPriceText;
             }
 
-            res.status(200).json({
+            return res.status(200).json({
                 result: true,
                 message: clovaConversation,
                 history: history,
@@ -132,7 +159,9 @@ router.post("/chat", async (req, res) => {
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ result: false, error: error.message });
+            return res
+                .status(500)
+                .json({ result: false, error: error.message });
         }
     }
     res.status(200).json({ result: false });
