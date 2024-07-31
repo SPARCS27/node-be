@@ -32,7 +32,7 @@ export const fetchOrderConversation = async (data) => {
     ];
 
     const response = await axios
-        .post("CLOVA_STUDIO_URL", JSON.stringify(data), {
+        .post(CLOVA_STUDIO_URL, JSON.stringify(data), {
             headers: headers,
         })
         .then((res) => res.data);
