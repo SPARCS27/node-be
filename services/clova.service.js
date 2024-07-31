@@ -88,7 +88,7 @@ const extractEventResult = (chunks) => {
         if (!match) {
             continue;
         }
-        console.log(match[1]);
+
         match[1] = removeJsonMarkers(match[1]);
         return JSON.parse(match[1]).message;
     }
@@ -96,13 +96,9 @@ const extractEventResult = (chunks) => {
     return "";
 };
 
-const removeJsonMarkers = (text) => {
-    const pattern = /^\s*```json\s*([\s\S]*?)\s*```\s*$/m;
-    const match = text.match(pattern);
-
-    if (match) {
-        return match[1].trim();
-    } else {
-        return text;
-    }
+const removeJsonMarkers = (str) => {
+    console.log(str);
+    str = str.replace(/```json(.*?)```/g, (_, p1) => p1.replace(/"/g, '\\"'));
+    console.log(str);
+    return str;
 };
