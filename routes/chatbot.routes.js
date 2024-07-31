@@ -60,6 +60,9 @@ router.post("/chat", async (req, res) => {
             }
         });
 
+        if (clovaConversation.content.includes("결제 도와드리겠습니다")) {
+            cart.task.step = "PAY";
+        }
         res.status(200).json({
             result: true,
             message: clovaConversation,
