@@ -17,7 +17,7 @@ console.log("VOICE_CLIENT_ID:", process.env.VOICE_CLIENT_ID);
 console.log("VOICE_CLIENT_SECRET:", process.env.VOICE_CLIENT_SECRET);
 
 const data = {
-    speaker: "nes_c_hyeri",
+    speaker: "nara",
     text: "네, 총 6,900원입니다. 앞쪽에 카드 넣어주세요",
     volume: 0,
     speed: 0,
