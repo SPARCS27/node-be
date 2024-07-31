@@ -18,7 +18,11 @@ const app = express();
 const server = createServer(app);
 
 const corsConfig = {
-    origin: ["http://localhost:4137", "http://localhost:4000"],
+    origin: [
+        "http://localhost:4137",
+        "http://localhost:4000",
+        "https://www.sparcs27.jeongrae.me",
+    ],
     credentials: true,
 };
 
